@@ -3,7 +3,7 @@
 */
 import { DEBUG } from '@glimmer/env';
 import { PROXY_CONTENT } from '@ember/-internals/metal';
-import { symbol, HAS_NATIVE_PROXY, tryInvoke } from '@ember/-internals/utils';
+import { symbol, HAS_NATIVE_PROXY, TRACKABLE_OBJECT, tryInvoke } from '@ember/-internals/utils';
 import {
   get,
   set,
@@ -221,6 +221,7 @@ function mapBy(key) {
 */
 const ArrayMixin = Mixin.create(Enumerable, {
   [EMBER_ARRAY]: true,
+  [TRACKABLE_OBJECT]: true,
 
   /**
     __Required.__ You must implement this method to apply this mixin.

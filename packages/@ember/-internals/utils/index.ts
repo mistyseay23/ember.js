@@ -32,6 +32,7 @@ export { HAS_NATIVE_SYMBOL } from './lib/symbol-utils';
 export { HAS_NATIVE_PROXY } from './lib/proxy-utils';
 export { isProxy, setProxy } from './lib/is_proxy';
 export { default as Cache } from './lib/cache';
+export { TRACKABLE_OBJECT, isTrackableObject } from './lib/trackable-object';
 
 import symbol from './lib/symbol';
 export const NAME_KEY = symbol('NAME_KEY');

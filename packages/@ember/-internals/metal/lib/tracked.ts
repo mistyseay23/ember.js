@@ -1,11 +1,15 @@
-import { HAS_NATIVE_SYMBOL, symbol as emberSymbol } from '@ember/-internals/utils';
+import {
+  HAS_NATIVE_SYMBOL,
+  isTrackableObject,
+  symbol as emberSymbol,
+} from '@ember/-internals/utils';
 import { EMBER_NATIVE_DECORATOR_SUPPORT } from '@ember/canary-features';
 import { assert } from '@ember/debug';
 import { DEBUG } from '@glimmer/env';
 import { combine, CONSTANT_TAG, Tag } from '@glimmer/reference';
 import { Decorator, DecoratorPropertyDescriptor, isElementDescriptor } from './decorator';
 import { setComputedDecorator } from './descriptor_map';
-import { dirty, ensureRunloop, tagFor, tagForProperty } from './tags';
+import { dirty, ensureRunloop, tagFor, tagForProperty, update } from './tags';
 
 type Option<T> = T | null;
 
@@ -201,11 +205,21 @@ function descriptorForField([_target, key, desc]: [
     configurable: true,
 
     get(): any {
-      if (CURRENT_TRACKER) CURRENT_TRACKER.add(tagForProperty(this, key));
+      let propertyTag = tagForProperty(this, key);
+
+      if (CURRENT_TRACKER) CURRENT_TRACKER.add(propertyTag);
 
       // If the field has never been initialized, we should initialize it
       if (!(secretKey in this)) {
         this[secretKey] = typeof initializer === 'function' ? initializer.call(this) : undefined;
+      }
+
+      let value = this[secretKey];
+
+      // Update the tag for the returned value if it is trackable, e.g. should
+      // cause updates if it changes
+      if (isTrackableObject(value)) {
+        update(propertyTag, tagFor(value));
       }
 
       return this[secretKey];

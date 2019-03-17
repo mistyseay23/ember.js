@@ -1,5 +1,5 @@
 import { Meta, meta as metaFor, peekMeta } from '@ember/-internals/meta';
-import { inspect, toString } from '@ember/-internals/utils';
+import { inspect, isTrackableObject, toString } from '@ember/-internals/utils';
 import {
   EMBER_METAL_TRACKED_PROPERTIES,
   EMBER_NATIVE_DECORATOR_SUPPORT,
@@ -27,7 +27,7 @@ import expandProperties from './expand_properties';
 import { defineProperty } from './properties';
 import { notifyPropertyChange } from './property_events';
 import { set } from './property_set';
-import { tagForProperty, update } from './tags';
+import { tagFor, tagForProperty, update } from './tags';
 import { getCurrentTracker, setCurrentTracker } from './tracked';
 
 export type ComputedPropertyGetter = (keyName: string) => any;
@@ -465,6 +465,13 @@ export class ComputedProperty extends ComputedDescriptor {
 
     if (EMBER_METAL_TRACKED_PROPERTIES) {
       setCurrentTracker(parent!);
+
+      // Add the tag of the returned value if it is trackable, e.g. an array or
+      // another object that should cause updates if it is changed.
+      if (isTrackableObject(ret)) {
+        tracker.add(tagFor(ret));
+      }
+
       let tag = tracker!.combine();
       if (parent) parent.add(tag);
 
