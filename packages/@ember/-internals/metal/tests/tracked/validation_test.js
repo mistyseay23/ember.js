@@ -1,4 +1,12 @@
-import { computed, defineProperty, get, set, tagForProperty, tracked } from '../..';
+import {
+  computed,
+  defineProperty,
+  get,
+  set,
+  tagForProperty,
+  tracked,
+  notifyPropertyChange,
+} from '../..';
 
 import {
   EMBER_METAL_TRACKED_PROPERTIES,
@@ -6,6 +14,7 @@ import {
 } from '@ember/canary-features';
 import { AbstractTestCase, moduleFor } from 'internal-test-helpers';
 import { track } from './support';
+import { TRACKABLE_OBJECT } from '../../../utils';
 
 if (EMBER_METAL_TRACKED_PROPERTIES && EMBER_NATIVE_DECORATOR_SUPPORT) {
   moduleFor(
@@ -284,6 +293,52 @@ if (EMBER_METAL_TRACKED_PROPERTIES && EMBER_NATIVE_DECORATOR_SUPPORT) {
         assert.equal(tag.validate(snapshot), false, 'invalid after setting with Ember.set');
 
         assert.equal(get(obj, 'full'), 'Tizzle Dale');
+      }
+
+      ['@test interaction with arrays'](assert) {
+        class EmberObject {
+          @tracked array = [];
+        }
+
+        let obj = new EmberObject();
+
+        let tag = tagForProperty(obj, 'array');
+        let snapshot = tag.value();
+
+        let array = get(obj, 'array');
+        assert.deepEqual(array, []);
+        assert.equal(tag.validate(snapshot), true);
+
+        array.push(1);
+        notifyPropertyChange(array, '[]');
+        assert.equal(
+          tag.validate(snapshot),
+          false,
+          'invalid after pushing an object and notifying on the array'
+        );
+      }
+
+      ['@test interaction with trackable objects'](assert) {
+        class EmberObject {
+          @tracked trackable = {
+            [TRACKABLE_OBJECT]: true,
+          };
+        }
+
+        let obj = new EmberObject();
+
+        let tag = tagForProperty(obj, 'trackable');
+        let snapshot = tag.value();
+
+        let trackable = get(obj, 'trackable');
+        assert.equal(tag.validate(snapshot), true);
+
+        set(trackable, 'foo', 123);
+        assert.equal(
+          tag.validate(snapshot),
+          false,
+          'invalid after setting a property on the object'
+        );
       }
     }
   );

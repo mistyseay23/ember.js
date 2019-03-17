@@ -135,7 +135,7 @@ export function tracked(...args: any[]): Decorator | DecoratorPropertyDescriptor
       assert(
         `The options object passed to tracked() may only contain a 'value' or 'initializer' property, not both. Received: [${keys}]`,
         keys.length <= 1 &&
-          (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'undefined')
+          (keys[0] === undefined || keys[0] === 'value' || keys[0] === 'initializer')
       );
 
       assert(
